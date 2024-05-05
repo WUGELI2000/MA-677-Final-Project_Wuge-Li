@@ -1,0 +1,221 @@
+---
+title: "677 Final Project"
+author: "Wuge Li"
+date: "2024-05-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This document presents a comprehensive study guide for Chapter 6 of "Elementary Decision Theory," focusing on Bayesian decision-making processes under uncertainty. The goal of these notes is to provide a detailed exploration of the computational methods, mathematical principles, and practical applications discussed in the chapter. These notes are intended for both academic review and practical application, aiding students and practitioners alike in understanding and implementing Bayesian decision theory.
+
+The chapter under study offers significant insights into Bayesian statistics, a fundamental aspect of modern decision-making in uncertain conditions. Bayesian methods are pivotal in many fields such as economics, medicine, and artificial intelligence, where making informed decisions based on incomplete information is essential. This guide will dissect the chapter through various lenses:
+
+1    Computational Methods: Investigating how Bayesian strategies are computed and can be implemented using modern computational tools.
+
+2    Mathematical Underpinnings: Elucidating the mathematical concepts that form the basis of Bayesian decision theory.
+
+3    Historical Context: Providing a background on the evolution of Bayesian methods and their philosophical underpinnings.
+
+4    Statistical Practice Implications: Discussing how the theoretical aspects are applied practically in statistical analyses and decision-making processes.
+
+<br>
+<br>
+<br>
+
+## main points
+
+This is a detailed breakdown of the main points and comments for each specific section within Chapter 6 of the text "Elementary Decision Theory," focusing on the computation of Bayes strategies:
+
+1    A Posterior Probability and the No-Data Problem
+
+Main Point: This section introduces the concept of a posterior probability in scenarios where no prior data exists. It discusses how to establish a rational basis for making decisions when prior empirical data is unavailable or irrelevant.
+
+
+Comments: The discussion emphasizes the foundational principles of Bayesian inference, starting with subjective or prior probabilities. It highlights the practical implications of making decisions based solely on subjective assessments and theoretical priors, which is critical in fields like risk management where empirical data may not yet exist.
+
+
+2    Conditional Probability
+
+Main Point: This section delves into the mathematical formulation and application of conditional probabilities in the context of Bayesian decision theory.
+
+
+Comments: Conditional probability is presented as a tool for updating the likelihood of various states of nature based on new information. This part underscores the dynamic nature of Bayesian updating, illustrating how new data can refine or shift our understanding of probable outcomes. It serves as a bridge to more complex Bayesian computations, setting the stage for the practical computation of strategies.
+
+
+3    A Posterior Probability
+
+Main Point: Further elaborates on calculating posterior probabilities using Bayes' Theorem, particularly focusing on integrating new evidence into existing models.
+
+
+Comments: This section provides a more in-depth look at the mathematical processes involved in updating beliefs about uncertain states. It offers examples and formula that show how prior beliefs (quantified as probabilities) are adjusted in light of new, relevant data. This is crucial for fields that rely on continual data influx, such as financial forecasting or adaptive algorithms in machine learning.
+
+
+4    Computation of Bayes Strategies
+
+Main Point: Explores the methodologies and algorithms for computing optimal decisions (Bayes strategies) based on updated probabilities.
+
+
+Comments: This part provides a practical guide on applying Bayesian decision theory to real-world problems. It discusses computational techniques that can be employed to derive strategies that minimize expected loss or maximize expected utility. The emphasis is on translating theoretical probability distributions into actionable decision-making strategies, illustrating the application through step-by-step examples.
+
+
+5    Independence
+
+Main Point: Discusses the concept of independence within the framework of Bayesian inference and its implications for simplifying computations of probabilities and strategies.
+
+
+Comments: This section examines scenarios where states or events are independent of each other and how this assumption can facilitate the simplification of complex probability calculations. Independence is a critical concept in probability and statistics that can dramatically reduce the computational burden in large-scale decision models. The text likely illustrates this with examples showing how independence between variables can lead to more straightforward and computationally feasible models.
+
+<br>
+<br>
+<br>
+
+## computational methods and mathematics underlying
+
+
+The author utilizes an example involving sunny and rainy weather conditions to illustrate this section. I find this example particularly relevant to the Markov chain Monte Carlo methods I studied in MA 578 (Bayesian Statistics).
+
+To enhance the example in the book, I propose the following modified probabilities for transitions between weather states:
+
+    The probability of transitioning from sunny, rainy, or neither to a rainy day is 0.2, 0.7, and 0.1, respectively.
+    The probability of transitioning from sunny, rainy, or neither to a sunny day is 0.8, 0.1, and 0.1, respectively.
+    The probability of transitioning from sunny, rainy, or neither to a neither type day is 0.5, 0.3, and 0.2, respectively.
+
+These probabilities can then be visually represented using the DiagrammeR library in R to create a Markov chain graph that clearly demonstrates the transition probabilities between different weather states.
+
+```{r echo=TRUE, warning=FALSE}
+library(DiagrammeR)
+
+DiagrammeR::grViz("
+  digraph markov_chain {
+    node [shape = circle]
+    
+    Rainy -> Rainy [label = '0.7']
+    Rainy -> Sunny [label = '0.2']
+    Rainy -> Neither [label = '0.2']
+    Sunny -> Sunny [label = '0.8']
+    Sunny -> Rainy [label = '0.1']
+    Sunny -> Neither [label = '0.1']
+    Neither -> Sunny [label = '0.5']
+    Neither -> Rainy [label = '0.3']
+    Neither -> Neither [label = '0.2']
+  }
+")
+```
+
+
+This diagram, generated using the DiagrammeR package, vividly illustrates the transition probabilities among sunny, rainy, and neither weather states. It effectively aids in visualizing the dynamics explored in our study, particularly how they relate to understanding posterior probabilities and addressing scenarios with no prior data. Such graphical representations are invaluable for comprehensively grasping the underlying stochastic processes in Bayesian analysis.
+
+
+Mr. Nelson faces a decision problem where he lacks data about the weather but knows the probabilities of it being a sunny or rainy day (0.6 and 0.4 respectively). He has three actions (a1, a2, a3) available and must decide which to take based solely on these probabilities.
+
+Actions: The actions could be any decision such as carrying an umbrella, wearing a raincoat, or doing nothing.
+
+Regret: Regret here represents the potential loss or missed opportunity for not choosing the best action, given the actual state of the weather. For example, if it rains and he didn't take an umbrella, his regret is higher than if he did.
+
+
+States (θ1,θ2): These are possible states of the world, which in this case are the weather conditions.
+
+Regrets (r(θ,a)): This column shows the regret for each action depending on the state. For instance, r(θ1,a1) is the regret if it is a sunny day (θ1) and he took action a1.
+
+Prior Probabilities $$\vec{w}$$ This row indicates the prior probability of each state of the world occurring, which in this example are 0.6 for sunny and 0.4 for rainy.
+
+Expected Bayes Risk $$B(\vec{w}, a)$$ For each action, this risk is calculated by taking a weighted sum of regrets across all states, weighted by the prior probability of each state. For action a1, it is calculated as 0.6 × 0 + 0.4 × 3 = 1.2.
+
+Bayesian Decision Making
+
+Bayes Risk $$B(\vec{w})$$ This is the minimum expected risk across all possible actions, determining the best action to minimize potential regret.
+
+Bayes Action: This is the action that results in the Bayes Risk. In this case, action a2 is the best action as it has the lowest Bayes Risk of 1.0.
+
+
+A Posterior Probability Calculation: The chapter delves into calculating a posterior probabilities, which update beliefs about the likelihood of different states of nature based on observed outcomes. This involves Bayesian updating, a fundamental technique in statistics where prior probability distributions are updated with new data to form posterior distributions.
+
+
+Bayes Strategies Computation: The chapter outlines methods to compute optimal strategies that depend on the posterior probabilities. It discusses practical computational challenges and proposes simplifications like using only relevant outcomes from past decisions to predict future probabilities and reduce computational complexity.
+
+
+
+Bayesian Updating in R:
+
+```{r}
+# Prior distribution: P(Theta)
+# Likelihood: P(Data | Theta)
+# Computation of Posterior: P(Theta | Data) using Bayes' Rule
+
+prior <- function(theta) {
+  dbeta(theta, 1, 1)  # Uniform prior
+}
+
+likelihood <- function(theta, data) {
+  dbinom(data$successes, size=data$trials, prob=theta)
+}
+
+posterior <- function(theta, data) {
+  prior(theta) * likelihood(theta, data) / integral_of(prior * likelihood)
+}
+
+```
+
+
+Bayesian Decision Analysis in R:
+```{r}
+expected_utility <- function(action, utility_function, posterior) {
+  integral(posterior * utility_function(action))
+}
+
+optimal_action <- function(possible_actions, expected_utility) {
+  sapply(possible_actions, expected_utility) %>% which.max()
+}
+```
+
+<br>
+<br>
+<br>
+
+## Historical Context
+
+Chapter 6 of "Elementary Decision Theory" by Herman Chernoff and Lincoln E. Moses elaborates on the computation of Bayes strategies within the framework of statistical decision theory. This chapter continues the foundational work laid out in the earlier parts of the book, specifically building on the conceptual framework introduced in Chapter 5. The historical backdrop of this discussion centers around the evolution of Bayesian statistics, which has its roots in the work of Reverend Thomas Bayes in the 18th century but was substantially advanced in the 20th century with the development of decision theory frameworks by figures like Abraham Wald, who formally developed statistical decision functions in the mid-20th century.
+
+The specific focus on Bayesian methods in this chapter reflects a broader shift in statistical practice during the mid-20th century, as the field increasingly recognized the utility of Bayesian approaches for making decisions under uncertainty, especially when prior information is available but incomplete. The methodologies discussed, such as the computation of Bayes strategies, underscore an ongoing movement towards integrating rigorous mathematical methods in decision-making processes across various fields of inquiry and application.
+
+
+<br>
+<br>
+<br>
+
+## Statistical Practice Implications
+
+Historical Context of Chapter 6
+
+Chapter 6 of "Elementary Decision Theory" by Herman Chernoff and Lincoln E. Moses elaborates on the computation of Bayes strategies within the framework of statistical decision theory. This chapter continues the foundational work laid out in the earlier parts of the book, specifically building on the conceptual framework introduced in Chapter 5. The historical backdrop of this discussion centers around the evolution of Bayesian statistics, which has its roots in the work of Reverend Thomas Bayes in the 18th century but was substantially advanced in the 20th century with the development of decision theory frameworks by figures like Abraham Wald, who formally developed statistical decision functions in the mid-20th century.
+
+The specific focus on Bayesian methods in this chapter reflects a broader shift in statistical practice during the mid-20th century, as the field increasingly recognized the utility of Bayesian approaches for making decisions under uncertainty, especially when prior information is available but incomplete. The methodologies discussed, such as the computation of Bayes strategies, underscore an ongoing movement towards integrating rigorous mathematical methods in decision-making processes across various fields of inquiry and application .
+Statistical Practice Implications
+
+The statistical practice implications of Chapter 6 are significant, particularly for fields involving decision-making under uncertainty. This chapter's focus on Bayes strategies introduces a systematic approach to decision-making where choices are based not just on outcomes but on the integration of prior beliefs and evidence through Bayesian updating. This approach is foundational for modern Bayesian statistics, which is pivotal in areas ranging from economics to artificial intelligence.
+
+Practically, the methodologies discussed in Chapter 6 enable statisticians and researchers to apply Bayesian principles to real-world problems where decisions must be made with incomplete data. By computing Bayes strategies, decision-makers can minimize expected losses or maximize utility based on probabilistic models. This has broad implications for fields like economics, where risk management and decision-making under uncertainty are routine. Moreover, the adoption of Bayesian methods as described in this chapter aids in developing more adaptive, data-driven strategies that can be updated as new information becomes available, promoting a more dynamic and responsive approach to statistical analysis and decision-making .
+
+These insights from Chapter 6 not only reflect the theoretical advancements of the time but also demonstrate the increasing practical relevance of statistical decision theory in addressing complex, uncertain scenarios across various scientific and applied disciplines.
+
+
+<br>
+<br>
+<br>
+
+## Reference
+
+Reference for the Book:
+
+Chernoff, H., & Moses, L. E. (1959). Elementary Decision Theory. Wiley.
+
+
+Reference for GPT:
+
+OpenAI. (2020). Generative Pre-trained Transformer (GPT): OpenAI's language generation model. Retrieved from https://www.openai.com
+
