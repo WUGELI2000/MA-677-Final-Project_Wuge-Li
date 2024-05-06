@@ -171,18 +171,28 @@ For example, beta prior and binomial likelihood will get beta posterior.
 Mathematics proof:
 
 formula of Beta distribution:
+
 $$f(\theta; \alpha, \beta) = \frac{\theta^{(\alpha-1)} (1-\theta)^{(\beta-1)}}{B(\alpha, \beta)}, where \space B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$$
+
 Gamma function:
+
 $$\Gamma(a) = (a-1)!$$
 
+
 formula of Binomial distribution:
+
 $$f(k,n,\theta) = \frac{n!}{k!(n-k)!}\theta^{k}(1-\theta)^{n-k}$$
 
 applying Baye's Rule:
+
 $$Posterior = \frac{\theta^{(\alpha-1)} (1-\theta)^{(\beta-1)}}{B(\alpha, \beta)}.\frac{n!}{k!(n-k)!}\theta^{k}(1-\theta)^{n-k}$$
+
 $$Posterior \propto \theta^{(\alpha-1+k)}.(1-\theta)^{(\beta-1+n-k)}$$
+
 So, posterior of beta prior and binomial likelihood is:
+
 $$\theta | k, n, \beta_1, \beta_2 \sim \text{Beta}(\alpha + k, \beta + n - k)$$
+
 
 ggplot in R to draw prior and posterior of beta prior and binomial likelihood:
 
