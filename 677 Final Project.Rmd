@@ -99,7 +99,7 @@ To enhance the example in the book, I propose the following modified probabiliti
 
 These probabilities can then be visually represented using the DiagrammeR library in R to create a Markov chain graph that clearly demonstrates the transition probabilities between different weather states.
 
-```{r echo=TRUE, warning=FALSE}
+```{r markov-chain, echo=FALSE, fig.height=12, fig.width=15, warning=FALSE}
 library(DiagrammeR)
 
 DiagrammeR::grViz("
@@ -122,6 +122,9 @@ DiagrammeR::grViz("
 
 This diagram, generated using the DiagrammeR package, vividly illustrates the transition probabilities among sunny, rainy, and neither weather states. It effectively aids in visualizing the dynamics explored in our study, particularly how they relate to understanding posterior probabilities and addressing scenarios with no prior data. Such graphical representations are invaluable for comprehensively grasping the underlying stochastic processes in Bayesian analysis.
 
+<br>
+<br>
+<br>
 
 Mr. Nelson faces a decision problem where he lacks data about the weather but knows the probabilities of it being a sunny or rainy day (0.6 and 0.4 respectively). He has three actions (a1, a2, a3) available and must decide which to take based solely on these probabilities.
 
@@ -130,13 +133,17 @@ Actions: The actions could be any decision such as carrying an umbrella, wearing
 Regret: Regret here represents the potential loss or missed opportunity for not choosing the best action, given the actual state of the weather. For example, if it rains and he didn't take an umbrella, his regret is higher than if he did.
 
 
-States (θ1,θ2): These are possible states of the world, which in this case are the weather conditions.
+States$$(\theta_1, \theta_2)$$: These are possible states of the world, which in this case are the weather conditions.
 
-Regrets (r(θ,a)): This column shows the regret for each action depending on the state. For instance, r(θ1,a1) is the regret if it is a sunny day (θ1) and he took action a1.
+Regrets $$(r(\theta,a))$$: This column shows the regret for each action depending on the state. For instance, $$(r(\theta_1,a_1))$$ is the regret if it is a sunny day $$\theta_1$$ and he took action a1.
 
 Prior Probabilities $$\vec{w}$$ This row indicates the prior probability of each state of the world occurring, which in this example are 0.6 for sunny and 0.4 for rainy.
 
 Expected Bayes Risk $$B(\vec{w}, a)$$ For each action, this risk is calculated by taking a weighted sum of regrets across all states, weighted by the prior probability of each state. For action a1, it is calculated as 0.6 × 0 + 0.4 × 3 = 1.2.
+
+<br>
+<br>
+<br>
 
 Bayesian Decision Making
 
@@ -151,27 +158,79 @@ A Posterior Probability Calculation: The chapter delves into calculating a poste
 Bayes Strategies Computation: The chapter outlines methods to compute optimal strategies that depend on the posterior probabilities. It discusses practical computational challenges and proposes simplifications like using only relevant outcomes from past decisions to predict future probabilities and reduce computational complexity.
 
 
+<br>
+<br>
+<br>
 
 Bayesian Updating in R:
 
-```{r}
-# Prior distribution: P(Theta)
-# Likelihood: P(Data | Theta)
-# Computation of Posterior: P(Theta | Data) using Bayes' Rule
+There are some special cases of Bayesian updating.
 
-prior <- function(theta) {
-  dbeta(theta, 1, 1)  # Uniform prior
+For example, beta prior and binomial likelihood will get beta posterior.
+
+Mathematics proof:
+
+formula of Beta distribution:
+$$f(\theta; \alpha, \beta) = \frac{\theta^{(\alpha-1)} (1-\theta)^{(\beta-1)}}{B(\alpha, \beta)}, where \space B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$$
+Gamma function:
+$$\Gamma(a) = (a-1)!$$
+
+formula of Binomial distribution:
+$$f(k,n,\theta) = \frac{n!}{k!(n-k)!}\theta^{k}(1-\theta)^{n-k}$$
+
+applying Baye's Rule:
+$$Posterior = \frac{\theta^{(\alpha-1)} (1-\theta)^{(\beta-1)}}{B(\alpha, \beta)}.\frac{n!}{k!(n-k)!}\theta^{k}(1-\theta)^{n-k}$$
+$$Posterior \propto \theta^{(\alpha-1+k)}.(1-\theta)^{(\beta-1+n-k)}$$
+So, posterior of beta prior and binomial likelihood is:
+$$\theta | k, n, \beta_1, \beta_2 \sim \text{Beta}(\alpha + k, \beta + n - k)$$
+
+ggplot in R to draw prior and posterior of beta prior and binomial likelihood:
+
+
+```{r warning=FALSE}
+# Load necessary library for plotting
+library(ggplot2)
+
+# Define the function
+simulate_beta_binomial_bayes <- function(n, beta1, beta2, size = 1) {
+    # Simulate data: number of successes k from a Binomial distribution
+    theta <- rbeta(size, beta1, beta2)  # Generate theta from the prior
+    k <- rbinom(size, n, theta)  # Generate k successes out of n trials
+    
+    # Update the prior to the posterior
+    posterior_beta1 <- beta1 + k
+    posterior_beta2 <- beta2 + n - k
+    
+    # Plotting data preparation
+    plot_data <- data.frame(
+        Theta = seq(0, 1, length.out = 100),
+        Prior = dbeta(seq(0, 1, length.out = 100), beta1, beta2),
+        Posterior = dbeta(seq(0, 1, length.out = 100), 
+                          posterior_beta1, posterior_beta2)
+    )
+
+    # Plotting
+    ggplot(plot_data, aes(x = Theta)) +
+        geom_line(aes(y = Prior, color = "Prior"), size = 1) +
+        geom_line(aes(y = Posterior, color = "Posterior"), size = 1) +
+        labs(title = "Beta Prior and Posterior Distributions", 
+             x = expression(theta), y = "Density") +
+        annotate("text", x = 0.5, y = max(plot_data$Prior), 
+                 label = paste("Beta(", beta1, ",", beta2, ")"), 
+                 hjust = 0.5, vjust = -0.5, color = "blue") +
+        annotate("text", x = 0.5, y = max(plot_data$Posterior), 
+                 label = paste("Beta(", posterior_beta1, ",", posterior_beta2, ")"), 
+                 hjust = 0.5, vjust = 1.5, color = "red") +
+        scale_color_manual(name = "Distribution", 
+                           values = c("Prior" = "blue", "Posterior" = "red")) +
+        theme_classic()
 }
 
-likelihood <- function(theta, data) {
-  dbinom(data$successes, size=data$trials, prob=theta)
-}
-
-posterior <- function(theta, data) {
-  prior(theta) * likelihood(theta, data) / integral_of(prior * likelihood)
-}
-
+# Example usage
+simulate_beta_binomial_bayes(n = 10, beta1 = 2, beta2 = 2)
 ```
+
+
 
 
 Bayesian Decision Analysis in R:
